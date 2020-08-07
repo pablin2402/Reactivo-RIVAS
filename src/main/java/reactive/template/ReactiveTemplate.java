@@ -2,6 +2,7 @@ package reactive.template;
 
 import java.util.*;
 
+import entity.ActionEntity;
 import entity.State;
 import logist.agent.Agent;
 import logist.behavior.ReactiveBehavior;
@@ -23,9 +24,26 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	// It add the cities to an ArrayList with all the possible destinations
 	// including itselves
-	private List<State> allPossibleStates(Topology topology) {
-		List<State> allStates = new ArrayList<>();
-		List<Topology.City> cities = topology.cities();
+
+	// It shows AllPossibleStates, that`s the unique option
+	private void showNeighbors(Topology topology, List<City> cities) {
+		List<State> allStates = allPossibleStates(topology, cities);
+		for (State state : allStates) {
+			System.out.println(state.currentCity);
+			System.out.println(state.neighbors);
+		}
+	}
+
+	private void showAllActions(Topology topology, List<City> cities) {
+		List<ActionEntity> allStates = allPossibleActions(topology, cities);
+		for (ActionEntity state : allStates) {
+			System.out.println(state.getDestination());
+			System.out.println(state.getAction());
+		}
+	}
+
+	private List<State> allPossibleStates(Topology topology, List<City> cities) {
+		List<State> allStates = new ArrayList<State>();
 
 		for (City possibleCurrentCities : cities) {
 			allStates.add(new State(possibleCurrentCities, null));
@@ -38,24 +56,28 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		return allStates;
 	}
 
-	// It shows AllPossibleStates, that`s the unique option
-	private void showNeighbors(Topology topology) {
-		List<State> allStates = allPossibleStates(topology);
-		for (State state : allStates) {
-			System.out.println(state.currentCity);
-			System.out.println(state.neighbors);
+	private List<ActionEntity> allPossibleActions(Topology topology, List<City> cities) {
+		List<ActionEntity> allActions = new ArrayList<>();
+		allActions.add(new ActionEntity(null, ActionEntity.ActionKind.Collect));
+		for (City a : cities) {
+			allActions.add(new ActionEntity(a, ActionEntity.ActionKind.Move));
 		}
+		return allActions;
 	}
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) throws NullPointerException {
 		v = new LinkedHashMap<State, Double>();
+		List<Topology.City> cities = topology.cities();
 
+		List<State> allStates = allPossibleStates(topology, cities);
+		List<ActionEntity> allActions = allPossibleActions(topology, cities);
+		showAllActions(topology, cities);
 		// It shows all the cities
-		allPossibleStates(topology);
-		showNeighbors(topology);
-		//probabilityfromCity(topology, td);
-		List<State> allStates = allPossibleStates(topology);
+		// allPossibleStates(topology, cities);
+		// showNeighbors(topology, cities);
+
+		// probabilityfromCity(topology, td);
 
 		// Initialize the vector arbitrarily
 		for (State state : allStates) {
@@ -64,10 +86,14 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		v.forEach((k, v) -> System.out.println("LLave: " + k + "valor: " + v));
 
 		int diferencia = 1;
-		
-		while (diferencia > 0.000001) {
+		double gama = 0.90;
+		do {
+			for (State currentState : allStates) {
+				for (ActionEntity currentAction : allActions) {
 
-		}
+				}
+			}
+		} while (diferencia < 0.000001);
 
 		// -----------------------------------------------------------------
 		Double discount = agent.readProperty("discount-factor", Double.class, 0.5);

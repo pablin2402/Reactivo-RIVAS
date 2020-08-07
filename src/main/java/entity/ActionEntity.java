@@ -2,11 +2,15 @@ package entity;
 
 import logist.topology.Topology;
 
-public class Action {
+public class ActionEntity {
     private Topology.City destination;
-    private Action action;
+    private ActionKind action;
 
-    public Action(Topology.City destination, Action action) {
+    public enum ActionKind {
+        Move, Collect
+    }
+
+    public ActionEntity(Topology.City destination, ActionKind action) {
         this.destination = destination;
         this.action = action;
     }
@@ -19,11 +23,11 @@ public class Action {
         this.destination = destination;
     }
 
-    public Action getAction() {
+    public ActionKind getAction() {
         return action;
     }
 
-    public void setAction(Action action) {
+    public void setAction(ActionKind action) {
         this.action = action;
     }
 
