@@ -17,6 +17,7 @@ import logist.topology.Topology.City;
 
 public class ReactiveTemplate implements ReactiveBehavior {
 	private Map<State, Double> v;
+	private Map<State, Double> q;
 
 	// Basic template
 	private Random random;
@@ -65,8 +66,20 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		return allActions;
 	}
 
+	// It calculates the cost between the currentcity to the destiny
+	private static double calculateCost(State state, TaskDistribution td, Agent agent) {
+		double costPerKm = agent.vehicles().get(0).costPerKm();
+
+		// reward if it exist a task
+		return (double) td.reward(state.getCurrentCity(), state.getNeighbors())
+				- (state.getCurrentCity().distanceTo(state.getNeighbors()) * costPerKm);
+	}
+
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) throws NullPointerException {
+		int costPerKim = agent.vehicles().get(0).costPerKm();
+
+		System.out.println("Costo por kilometro :" + costPerKim);
 		v = new LinkedHashMap<State, Double>();
 		List<Topology.City> cities = topology.cities();
 
@@ -81,16 +94,25 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		// Initialize the vector arbitrarily
 		for (State state : allStates) {
-			v.put(state, 0.0);
+			v.put(state, new Double(0.0));
 		}
 		v.forEach((k, v) -> System.out.println("LLave: " + k + "valor: " + v));
 
 		int diferencia = 1;
 		double gama = 0.90;
 		do {
+			double qMax;
 			for (State currentState : allStates) {
 				for (ActionEntity currentAction : allActions) {
+					// pickup action
+					if (currentState.getCurrentCity() != null
+							&& currentAction.getAction() == ActionEntity.ActionKind.Collect) {
+						qMax = calculateCost(currentState, td, agent);
+					}
+					// moveaction
+					else {
 
+					}
 				}
 			}
 		} while (diferencia < 0.000001);
