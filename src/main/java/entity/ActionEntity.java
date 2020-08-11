@@ -7,7 +7,7 @@ public class ActionEntity {
     private ActionKind action;
 
     public enum ActionKind {
-        Move, Collect
+        PICKUP, MOVE
     }
 
     public ActionEntity(Topology.City destination, ActionKind action) {

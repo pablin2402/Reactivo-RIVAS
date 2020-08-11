@@ -32,4 +32,4 @@ application {
     mainClassName = 'logist.LogistPlatform'
 }
 
-run.setArgsString('-a config/agents.xml config/reactive.xml reactive-random')
+run.setArgsString('-a config/agents.xml config/reactive.xml reactive-random reactive-pablo')

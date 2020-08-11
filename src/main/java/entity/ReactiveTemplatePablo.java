@@ -11,23 +11,18 @@ import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 
-import java.lang.System.Logger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.logging.*;
+
+import entity.ActionEntity.ActionKind;
 
 public class ReactiveTemplatePablo implements ReactiveBehavior {
-
 	private Random random;
 	private double pPickup;
 	private Map<State, Double> v;
-	private Map<State, Action> stateAction;
-
-	// It add the cities to an ArrayList with all the possible destinations
-	// including itselves
+	private Map<State, ActionEntity> stateAction;
 
 	// It shows AllPossibleStates, that`s the unique option
 	private void showNeighbors(Topology topology, List<City> cities) {
@@ -46,6 +41,8 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		}
 	}
 
+	// It add the cities to an ArrayList with all the possible destinations
+	// including itselv
 	private List<State> allPossibleStates(Topology topology, List<City> cities) {
 		List<State> allStates = new ArrayList<State>();
 
@@ -62,101 +59,130 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 
 	private List<ActionEntity> allPossibleActions(Topology topology, List<City> cities) {
 		List<ActionEntity> allActions = new ArrayList<>();
-		allActions.add(new ActionEntity(null, ActionEntity.ActionKind.Collect));
+		allActions.add(new ActionEntity(null, ActionEntity.ActionKind.PICKUP));
 		for (City a : cities) {
-			allActions.add(new ActionEntity(a, ActionEntity.ActionKind.Move));
+			allActions.add(new ActionEntity(a, ActionEntity.ActionKind.MOVE));
 		}
 		return allActions;
 	}
 
+	private List<ActionEntity> actionsPossible(State currentState, List<ActionEntity> actions) {
+		List<ActionEntity> allActionsPossible = new ArrayList<>();
+		for (ActionEntity currentAction : actions) {
+			if (currentAction.getAction() == ActionKind.MOVE) {
+				allActionsPossible.add(currentAction);
+			} else if (currentAction.getAction() == ActionKind.PICKUP) {
+				allActionsPossible.add(currentAction);
+
+			}
+		}
+		return allActionsPossible;
+
+	}
+
 	// It calculates the cost between the currentcity to the destiny if it has a
 	// reward or not
-	private static double calculateCost(State state, TaskDistribution td, Agent agent, ActionEntity actionEntity) {
+	public static double calculateCost(State state, State toState, TaskDistribution td, Agent agent,
+			ActionEntity actionEntity) {
 		// it could be global....
 		double costPerKm = agent.vehicles().get(0).costPerKm();
-
-		if (actionEntity.getAction() == ActionEntity.ActionKind.Move) {
-			return -1 * state.getCurrentCity().distanceTo(actionEntity.getDestination()) * costPerKm;
+		if (actionEntity.getAction() == ActionEntity.ActionKind.MOVE) {
+			// System.out.println("Costo si el vehiculo se mueve: "+-1 *
+			// state.getCurrentCity().distanceTo(actionEntity.getDestination()) *
+			// costPerKm);
+			return (double) ((-1) * state.getCurrentCity().distanceTo(actionEntity.getDestination()) * costPerKm);
 		}
-		// reward if it exist a task
-		return td.reward(state.getCurrentCity(), state.getNeighbors())
-				- (state.getCurrentCity().distanceTo(state.getNeighbors()) * costPerKm);
+		// System.out.println(td.reward(state.getCurrentCity(), state.getNeighbors())
+		// - (state.getCurrentCity().distanceTo(toState.getCurrentCity()) * costPerKm));
+
+		return (double) td.reward(state.getCurrentCity(), state.getNeighbors())
+				- (state.getCurrentCity().distanceTo(toState.getCurrentCity()) * costPerKm);
 	}
 
 	private double transition(State currentCity, ActionEntity action, State moveTo, TaskDistribution td) {
 
 		// the next state should start in the destination city
-		if (action.getAction() == ActionEntity.ActionKind.Collect
+		if (action.getAction() == ActionEntity.ActionKind.PICKUP
 				&& !moveTo.getCurrentCity().equals(currentCity.getNeighbors())) {
 			return 0;
 		}
 		// move action
-		else if (action.getAction() == ActionEntity.ActionKind.Move
+		else if (action.getAction() == ActionEntity.ActionKind.MOVE
 				&& !moveTo.getCurrentCity().equals(action.getDestination())) {
 			return 0;
 		}
+		// System.out.println("PROBABILIDAD DE " + currentCity.getCurrentCity() + "A" +
+		// moveTo.getCurrentCity());
+		// System.out.println(td.probability(moveTo.getCurrentCity(),
+		// moveTo.getNeighbors()));
+
 		return td.probability(moveTo.getCurrentCity(), moveTo.getNeighbors());
 	}
 
-	@Override
-	public void setup(Topology topology, TaskDistribution td, Agent agent) {
-
-		Double discount = agent.readProperty("discount-factor", Double.class, 0.5);
-
+	private void methodForReinforcementLearnig(Topology topology, TaskDistribution td, Agent agent, Double discount) {
 		List<Topology.City> cities = topology.cities();
 		// List for states and actions
 		List<State> allStates = allPossibleStates(topology, cities);
 		List<ActionEntity> allActions = allPossibleActions(topology, cities);
 		// Cost per km
-		int costPerKim = agent.vehicles().get(0).costPerKm();
-		java.util.logging.Logger.getLogger("Costo por kilometro :" + costPerKim);
-		// initializes the linkedhash map for v
+		int costPerKm = agent.vehicles().get(0).costPerKm();
 		v = new LinkedHashMap<>();
-		stateAction = new LinkedHashMap<>();
-
 		stateAction = new LinkedHashMap<>();
 
 		// Initialize the vector arbitrarily
 		for (State state : allStates) {
-			v.put(state, new Double(0.0));
+			v.put(state, 0.0);
 		}
-		v.forEach((k, v) -> System.out.println("LLave: " + k + "valor: " + v));
+		// v.forEach((k, v) -> System.out.println("LLave: " + k + "valor: " + v));
 
-		int diferencia = 1;
-		double gama = 0.90;
+		double diferencia = 1;
 		do {
+			System.out.println("caca");
 			for (State currentState : allStates) {
-				for (ActionEntity currentAction : allActions) {
-					// pickup action
+				ActionEntity newStateBestAction = null;
+				double q = Double.MIN_VALUE;
+
+				for (ActionEntity currentAction : actionsPossible(currentState, allActions)) {
 					double sum = 0;
-					double qMax = Double.NEGATIVE_INFINITY;
-					// it verifies if the action is collect or move
-					if (currentAction.getAction() == ActionEntity.ActionKind.Collect
-							|| currentAction.getAction() == ActionEntity.ActionKind.Collect) {
-						qMax = calculateCost(currentState, td, agent, currentAction);
-						for (State toState : allStates) {
-							sum += transition(currentState, currentAction, toState, td);
-							Double bestAction = v.get(toState);
-							System.out.println(bestAction);
-							if (bestAction != null) {
-								Double qValue = v.get(toState);
-								qMax += sum * discount * qValue;
 
-							}
+					for (State toState : allStates) {
+
+						if (!currentState.getCurrentCity().equals(toState.getCurrentCity())
+								&& !currentState.getCurrentCity().hasNeighbor(currentAction.getDestination())) {
+
+							double qMax = calculateCost(currentState, toState, td, agent, currentAction);
+							sum += discount * transition(currentState, currentAction, toState, td) * v.get(toState);
+							sum = sum + qMax;
 						}
-						// now we have to check if a new max exists
-						Double bestAction = v.get(currentState);
-						System.out.println(bestAction);
-
 					}
+					if (sum > q) {
+						q = sum;
+						newStateBestAction = currentAction;
+						if (sum != 0) {
+							diferencia = (sum - q) / q;
+						}
+					}
+					v.put(currentState, q);
+					stateAction.put(currentState, currentAction);
 				}
+
 			}
-		} while (diferencia < 0.000001);
+
+		} while (diferencia > 0.000001);
+
+	}
+
+	@Override
+	public void setup(Topology topology, TaskDistribution td, Agent agent) {
+
+		Double discount = agent.readProperty("discount-factor", Double.class, 0.95);
+		methodForReinforcementLearnig(topology, td, agent, discount);
 
 	}
 
 	@Override
 	public Action act(Vehicle vehicle, Task availableTask) {
+
 		Action action;
 
 		if (availableTask == null || random.nextDouble() > pPickup) {
@@ -164,6 +190,7 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 			action = new Move(currentCity.randomNeighbor(random));
 		} else {
 			action = new Pickup(availableTask);
+
 		}
 		return action;
 	}
