@@ -4,16 +4,13 @@ import logist.topology.Topology;
 
 public class ActionEntity {
     private Topology.City destination;
-    private ActionKind action;
+    private Boolean action;
 
-    public enum ActionKind {
-        PICKUP, MOVE
-    }
-
-    public ActionEntity(Topology.City destination, ActionKind action) {
+    public ActionEntity(Topology.City destination, Boolean action) {
         this.destination = destination;
         this.action = action;
     }
+
 
     public Topology.City getDestination() {
         return destination;
@@ -23,12 +20,19 @@ public class ActionEntity {
         this.destination = destination;
     }
 
-    public ActionKind getAction() {
+    public Boolean getAction() {
         return action;
     }
 
-    public void setAction(ActionKind action) {
+    public void setAction(Boolean action) {
         this.action = action;
     }
+
+
+
+
+
+
+
 
 }

@@ -2,9 +2,6 @@ package reactive.template;
 
 import java.util.*;
 
-import entity.ActionEntity;
-import entity.State;
-import entity.ActionEntity.ActionKind;
 import logist.agent.Agent;
 import logist.behavior.ReactiveBehavior;
 import logist.plan.Action;
