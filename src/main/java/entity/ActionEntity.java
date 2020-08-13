@@ -1,30 +1,36 @@
 package entity;
 
-import logist.topology.Topology;
+import logist.topology.Topology.City;
 
 public class ActionEntity {
-    public Topology.City destination;
-    public boolean action;
+    public City destination;
 
-    public ActionEntity(Topology.City destination, boolean action) {
+    private ActionType actionType;
+
+    public enum ActionType {
+        PICKUP, MOVE
+    }
+    public ActionEntity(City destination, ActionType actionType) {
         this.destination = destination;
-        this.action = action;
+        this.actionType = actionType;
     }
 
-    public Topology.City getDestination() {
+    public City getDestination() {
         return destination;
     }
 
-    public void setDestination(Topology.City destination) {
+    public void setDestination(City destination) {
         this.destination = destination;
     }
 
-    public boolean getAction() {
-        return action;
+    public ActionType getActionType() {
+        return actionType;
     }
 
-    public void setAction(boolean action) {
-        this.action = action;
+    public void setActionType(ActionType actionType) {
+        this.actionType = actionType;
     }
+
+
 
 }
