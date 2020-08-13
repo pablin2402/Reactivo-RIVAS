@@ -33,6 +33,10 @@ public class State {
         this.neighbors = neighbors;
     }
 
+    public boolean hasDestination() {
+        return neighbors != null;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

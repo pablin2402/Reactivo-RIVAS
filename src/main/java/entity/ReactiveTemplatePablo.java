@@ -10,8 +10,6 @@ import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
-
-import java.io.Console;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,24 +22,7 @@ import entity.ActionEntity.ActionType;
 public class ReactiveTemplatePablo implements ReactiveBehavior {
 
 	private Map<State, Double> v = new HashMap<>(); // best value for each state
-	private Map<State, ActionEntity> estrategia = new HashMap<>();// best action for each state
-
-	// It shows AllPossibleStates, that`s the unique option
-	private void showNeighbors(Topology topology, List<City> cities) {
-		List<State> allStates = allPossibleStates(cities);
-		for (State state : allStates) {
-			System.out.println(state.getCurrentCity());
-			System.out.println(state.getNeighbors());
-		}
-	}
-
-	private void showAllActions(Topology topology, List<City> cities) {
-		List<ActionEntity> allStates = allPossibleActions(cities);
-		for (ActionEntity state : allStates) {
-			System.out.println(state.getDestination());
-			System.out.println(state.getActionType());
-		}
-	}
+	private Map<State, ActionEntity> estrategy = new HashMap<>();// best action for each state
 
 	// It add the cities to an ArrayList with all the possible destinations
 	// including itselv
@@ -64,9 +45,9 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		// allActions.add(new ActionEntity(null, true));// true pickup
 
 		for (City a : cities) {
-			allActions.add(new ActionEntity(a, ActionEntity.ActionType.PICKUP));// true pickup
+			allActions.add(new ActionEntity(a, ActionEntity.ActionType.PICKUP));
 
-			allActions.add(new ActionEntity(a, ActionEntity.ActionType.MOVE));// false = move
+			allActions.add(new ActionEntity(a, ActionEntity.ActionType.MOVE));
 		}
 		return allActions;
 	}
@@ -75,9 +56,7 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		List<ActionEntity> allActionsPossible = new ArrayList<>();
 		for (ActionEntity currentAction : actions) {
 			if (currentAction.getActionType() == ActionEntity.ActionType.MOVE
-			/*
-			 * && currentState.getCurrentCity().hasNeighbor(currentAction.getDestination())
-			 */) {
+					&& currentState.getCurrentCity().hasNeighbor(currentAction.getDestination())) {
 				allActionsPossible.add(currentAction);
 			} else if (currentAction.getActionType() == ActionEntity.ActionType.PICKUP) {
 				allActionsPossible.add(currentAction);
@@ -93,29 +72,27 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		// it could be global....
 		double costPerKm = agent.vehicles().get(0).costPerKm();
 
-		double costForMoving;
-		if (actionEntity.getActionType() == ActionEntity.ActionType.MOVE) {
+		double costForMoving = 0;
+		if (Objects.equals(actionEntity.getActionType(), ActionEntity.ActionType.MOVE)) {
 
 			costForMoving = (-1) * state.getCurrentCity().distanceTo(actionEntity.getDestination()) * costPerKm;
 			return costForMoving;
 		}
+		return td.reward(state.getCurrentCity(), actionEntity.getDestination())
+				- (state.getCurrentCity().distanceTo(actionEntity.getDestination()) * costPerKm);
 
-		return td.reward(state.getCurrentCity(), actionEntity.getDestination());
 	}
 
-	private double transition(State currentCity, ActionEntity action, State moveTo, TaskDistribution td) {
+	private double transition(State state, ActionEntity action, State moveTo, TaskDistribution td) {
 
 		// the next state should start in the destination city
 
-		if (action.getActionType() == ActionType.PICKUP
-				&& !moveTo.getCurrentCity().equals(currentCity.getNeighbors())) {
-			return 0;
-		} else if (action.getActionType() == ActionType.MOVE
-				&& !moveTo.getCurrentCity().equals(action.getDestination())) {
+		if (Objects.equals(state.currentCity, action.getActionType()) || state.currentCity.equals(state.neighbors)
+				|| state.currentCity.equals(moveTo.currentCity) || !moveTo.currentCity.equals(action.getActionType())) {
 			return 0;
 		}
 
-		return td.probability(currentCity.getCurrentCity(), moveTo.getCurrentCity());
+		return td.probability(state.currentCity, moveTo.getNeighbors());
 	}
 
 	private void methodForReinforcementLearnig(Topology topology, TaskDistribution td, Agent agent) {
@@ -123,17 +100,17 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		// List for states and actions
 		List<State> allStates = allPossibleStates(cities);
 		List<ActionEntity> allActions = allPossibleActions(cities);
-		// Initialize linked hash maps
-		// v = new HashMap<>();
+		// store last v
+		Map<State, Double> vAnterior;
+
+		Double discount = agent.readProperty("discount-factor", Double.class, 0.95);
+		double diferencia;
+
 		// Initialize the vector arbitrarily
 		for (State statesCurrent : allStates) {
 			v.put(statesCurrent, 0.0);
 		}
 
-		Map<State, Double> vAnterior;
-
-		Double discount = agent.readProperty("discount-factor", Double.class, 0.95);
-		double diferencia;
 		do {
 			// copiamos los valores anteriores
 			vAnterior = new HashMap<>(v);
@@ -142,20 +119,20 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 				Map<ActionEntity, Double> q = new HashMap<>();// reward for each action
 
 				for (ActionEntity currentAction : actionsPossible(currentState, allActions)) {
-					double sum;
-					double sum2 = 0;
+					double sum = 0;
 
 					double qMax = calculateCost(currentState, td, agent, currentAction);
 					for (State toState : allStates) {
 
-						sum2 = transition(currentState, currentAction, toState, td) * v.get(toState) * discount;
-						sum = sum2;
+						sum = transition(currentState, currentAction, toState, td) * v.get(toState) * discount;
+
 					}
 
-					sum = +qMax;
+					sum += qMax;
 					q.put(currentAction, sum);
 
 				}
+				// best action
 				ActionEntity bestAction = null;
 				double maximQ = Double.MIN_VALUE;
 				for (Map.Entry<ActionEntity, Double> entradaQ : q.entrySet()) {
@@ -165,10 +142,8 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 					}
 				}
 				v.put(currentState, maximQ);
-				estrategia.put(currentState, bestAction);
-				ActionEntity actionate = estrategia.get(currentState);
-				// System.out.println("a" + actionate.getDestination() +
-				// actionate.getActionType());
+				estrategy.put(currentState, bestAction);
+
 			}
 			diferencia = 0.0;
 			for (State cState : allStates) {
@@ -188,20 +163,12 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 	@Override
 	public Action act(Vehicle vehicle, Task availableTask) {
 		Action action;
+		City currentcity = vehicle.getCurrentCity();
 
-		City currentCity = vehicle.getCurrentCity();
+		if (availableTask == null) {
+			ActionEntity actionate = estrategy
+					.get(new State(currentcity, availableTask == null ? null : availableTask.deliveryCity));
 
-		State currState = new State(null, null);
-		currState.setCurrentCity(vehicle.getCurrentCity());
-		if (availableTask != null) {
-			currState.setNeighbors(availableTask.deliveryCity);
-		}
-		// estrategia.values().removeIf(st -> st.getActionType() == null);
-
-		ActionEntity actionate = estrategia.get(currState);
-		System.out.print(actionate.getActionType());
-
-		if (Objects.equals(actionate.getActionType(), ActionEntity.ActionType.MOVE)) {
 			action = new Move(actionate.getDestination());
 		} else {
 			action = new Pickup(availableTask);
