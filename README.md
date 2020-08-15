@@ -56,6 +56,8 @@ El código Action que implemente es el siguiente:
 }
 ```
 
+Lo que hace es bastante simple, ve si la tarea disponible es falsa y si es asi se mueve, antes de eso se llama al objeto Acción donde llamo a **estrategia.get(new State(currentcity, availableTask == null ? null : availableTask.deliveryCity))** para recuperar la mejor accion a realizar. Dicha accion recuperada va a MOVE y le dice donde ir, caso contrario que _availabletask_ no sea null simplemente lo recoge.
+
 # Resultados
 
 Los resultados son los siguientes:
