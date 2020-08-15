@@ -1,11 +1,11 @@
-package entity;
+package rivas;
 
 import logist.topology.Topology.City;;
 
 public class State {
-    public City currentCity;
+    private City currentCity;
 
-    public City neighbors;
+    private City neighbors;
 
     public State(City currentCity, City neighbors) {
         this.currentCity = currentCity;

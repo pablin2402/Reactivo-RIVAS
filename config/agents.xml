@@ -10,8 +10,8 @@
 		<set discount-factor=".85"/>
 	</agent>
 	<agent name="reactive-pablo"> <!-- blue -->
-		<set class-path="build/classes/java/main/entity"/>
-		<set class-name="entity.ReactiveTemplatePablo"/>
+		<set class-path="build/classes/java/main/rivas"/>
+		<set class-name="rivas.ReactiveTemplatePablo"/>
 		<set discount-factor=".85"/>
 	</agent>
 </agents>

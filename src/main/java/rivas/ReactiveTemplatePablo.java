@@ -1,4 +1,4 @@
-package entity;
+package rivas;
 
 import logist.agent.Agent;
 import logist.behavior.ReactiveBehavior;
@@ -10,14 +10,13 @@ import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import entity.ActionEntity.ActionType;
 
 public class ReactiveTemplatePablo implements ReactiveBehavior {
 
@@ -87,12 +86,12 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 
 		// the next state should start in the destination city
 
-		if (Objects.equals(state.currentCity, action.getActionType()) || state.currentCity.equals(state.neighbors)
-				|| state.currentCity.equals(moveTo.currentCity) || !moveTo.currentCity.equals(action.getActionType())) {
+		if (Objects.equals(state.getCurrentCity(), action.getActionType()) || state.equals(state.getCurrentCity())
+				|| state.equals(moveTo) || !moveTo.equals(action.getActionType())) {
 			return 0;
 		}
 
-		return td.probability(state.currentCity, moveTo.getNeighbors());
+		return td.probability(state.getCurrentCity(), moveTo.getNeighbors());
 	}
 
 	private void methodForReinforcementLearnig(Topology topology, TaskDistribution td, Agent agent) {
@@ -165,7 +164,7 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		Action action;
 		City currentcity = vehicle.getCurrentCity();
 
-		if (availableTask == null) {
+		if (Objects.equals(availableTask, null)) {
 			ActionEntity actionate = estrategy
 					.get(new State(currentcity, availableTask == null ? null : availableTask.deliveryCity));
 

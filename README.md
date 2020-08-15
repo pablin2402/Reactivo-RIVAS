@@ -1,12 +1,39 @@
-# Reactive agent template
+# Explicación del Agente Reactivo
 
-This is a template for a reactive agent, for students of an Intelligent Agents
-or introduction to Artificial Intelligence course.
+Para este proyecto se crearon dos entidades: **ESTADO** y **ACCION**, la primera es ESTADO que contiene la ciudad
+actual y la ciudad destino. Después ACCIÓN tiene un destino y se uso ENUM que es una lista de constantes con
+nombre que define un nuevo tipo de datos. Las constantes de enumeración declaradas fueron _MOVE_ Y _PICK UP_.
 
-It uses the Logist platform that was developed by people at the EPFL lab on top
-of the Repast simulation platform.
+### Métodos implementados
 
-To run this project, you just need to execute
+##### allPossibleStates
+
+Añade las ciudades a un LISTA ENLAZADA con todos los posibles destinos,
+verificando que la misma ciudad que este en CIUDAD ACTUAL no sea la CIUDAD DESTINO.
+
+#### allPossibleActions
+
+Añade las ciudades a un LISTA ENLAZADA con todas las posibles acciones: PICK UP y MOVE.
+
+#### actionsPossible
+
+Añade las acciones a una LISTA ENLAZADA, es como una doble verificación, aparte que tambien verifica si la ciudad ingresada tiene como vecino a la ciudad destino usando el metodo has Neigbor de LOGIST.
+
+#### calculateCost
+
+Devuelve un double y calcula el costo dependiendo la acción que se de, ya sea PICK UP o MOVE, esta misma quita dinero cuando la acción es **MOVE** viendo la distancia de una ciudad a otra multiplicandola por el costo por km. Para **PICK UP** calcula la recompensa usando **reward** menos la distancia de la ciudad a la ciudad destino multiplicando por el costo por km.
+
+#### transition
+
+Devuelve un double y ve la probabilidad que hay de una ciudad a otra, aparte de ver ciertos factores que hagan que la probabilidad sea 0
+
+#### methodForReinforcementLearnig
+
+El método sigue la siguiente estructura:
+![Image of Example](https://github.com/pablin2402/Reactivo-RIVAS/images/template.png)
+
+/images/template.png
+Para ejecutar este proyecto basta con ejecutar el siguiente comando:
 
     gradlew run
 
