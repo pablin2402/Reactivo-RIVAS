@@ -30,7 +30,7 @@ Devuelve un double y ve la probabilidad que hay de una ciudad a otra, aparte de 
 #### methodForReinforcementLearnig
 
 El método sigue la siguiente estructura:
-![Image of Example](https://github.com/pablin2402/Reactivo-RIVAS/images/template.png)
+![Image of Example](https://github.com/pablin2402/Reactivo-RIVAS/blob/master/images/template.png)
 
 /images/template.png
 Para ejecutar este proyecto basta con ejecutar el siguiente comando:
