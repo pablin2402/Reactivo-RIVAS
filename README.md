@@ -30,9 +30,38 @@ Devuelve un double y ve la probabilidad que hay de una ciudad a otra, aparte de 
 #### methodForReinforcementLearnig
 
 El método sigue la siguiente estructura:
-![Image of Example](https://github.com/pablin2402/Reactivo-RIVAS/images/template.png)
+![Image of Example](https://github.com/pablin2402/Reactivo-RIVAS/blob/master/images/template.png)
 
-/images/template.png
+#### Action act(Vehicle vehicle, Task availableTask)
+
+El código Action que implemente es el siguiente:
+
+```java
+@Override
+	public Action act(Vehicle vehicle, Task availableTask) {
+		Action action;
+		City currentcity = vehicle.getCurrentCity();
+
+		if (Objects.equals(availableTask, null)) {
+			ActionEntity actionate = estrategy
+					.get(new State(currentcity, availableTask == null ? null : availableTask.deliveryCity));
+
+			action = new Move(actionate.getDestination());
+		} else {
+			action = new Pickup(availableTask);
+		}
+
+		return action;
+
+}
+```
+
+# Resultados
+
+Los resultados son los siguientes:
+
+![Image of Example 2](https://github.com/pablin2402/Reactivo-RIVAS/blob/master/images/graph_095.png)
+
 Para ejecutar este proyecto basta con ejecutar el siguiente comando:
 
     gradlew run

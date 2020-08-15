@@ -102,7 +102,7 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		// store last v
 		Map<State, Double> vAnterior;
 
-		Double discount = agent.readProperty("discount-factor", Double.class, 0.95);
+		Double discount = agent.readProperty("discount-factor", Double.class, 0.85);
 		double diferencia;
 
 		// Initialize the vector arbitrarily
@@ -144,11 +144,11 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 				estrategy.put(currentState, bestAction);
 
 			}
-			diferencia = 0.0;
+			diferencia = 0.00;
 			for (State cState : allStates) {
 				diferencia += v.get(cState) - vAnterior.get(cState);
 			}
-		} while (diferencia > 0.0001);
+		} while (diferencia > 0.00000001);
 
 	}
 
