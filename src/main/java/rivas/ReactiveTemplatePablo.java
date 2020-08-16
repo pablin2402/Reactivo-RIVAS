@@ -10,6 +10,7 @@ import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+import rivas.ActionEntity.ActionType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		for (City possibleCurrentCities : cities) {
 			allStates.add(new State(possibleCurrentCities, null));
 			for (City possibleNeighbors : cities) {
-				if (possibleCurrentCities != possibleNeighbors) {
+				if (!possibleCurrentCities.equals(possibleNeighbors)) {
 					allStates.add(new State(possibleCurrentCities, possibleNeighbors));
 				}
 			}
@@ -54,10 +55,10 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 	private List<ActionEntity> actionsPossible(State currentState, List<ActionEntity> actions) {
 		List<ActionEntity> allActionsPossible = new ArrayList<>();
 		for (ActionEntity currentAction : actions) {
-			if (currentAction.getActionType() == ActionEntity.ActionType.MOVE
+			if (Objects.equals(currentAction.getActionType(), ActionEntity.ActionType.MOVE)
 					&& currentState.getCurrentCity().hasNeighbor(currentAction.getDestination())) {
 				allActionsPossible.add(currentAction);
-			} else if (currentAction.getActionType() == ActionEntity.ActionType.PICKUP) {
+			} else if (Objects.equals(currentAction.getActionType(), ActionEntity.ActionType.PICKUP)) {
 				allActionsPossible.add(currentAction);
 			}
 		}
@@ -86,12 +87,16 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 
 		// the next state should start in the destination city
 
-		if (Objects.equals(state.getCurrentCity(), action.getActionType()) || state.equals(state.getCurrentCity())
-				|| state.equals(moveTo) || !moveTo.equals(action.getActionType())) {
-			return 0;
+		if (state.getCurrentCity().equals(action.getDestination())
+				|| state.getCurrentCity().equals(state.getNeighbors())
+				|| state.getCurrentCity().equals(moveTo.getCurrentCity())
+				|| !moveTo.getCurrentCity().equals(action.getDestination())) {
+			return 0.0;
+		} else {
+			return td.probability(moveTo.getCurrentCity(), moveTo.getNeighbors());
+
 		}
 
-		return td.probability(state.getCurrentCity(), moveTo.getNeighbors());
 	}
 
 	private void methodForReinforcementLearnig(Topology topology, TaskDistribution td, Agent agent) {
@@ -102,8 +107,8 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 		// store last v
 		Map<State, Double> vAnterior;
 
-		Double discount = agent.readProperty("discount-factor", Double.class, 0.85);
-		double diferencia;
+		Double discount = agent.readProperty("discount-factor", Double.class, 0.95);
+		double diference;
 
 		// Initialize the vector arbitrarily
 		for (State statesCurrent : allStates) {
@@ -144,11 +149,11 @@ public class ReactiveTemplatePablo implements ReactiveBehavior {
 				estrategy.put(currentState, bestAction);
 
 			}
-			diferencia = 0.00;
+			diference = 0.00;
 			for (State cState : allStates) {
-				diferencia += v.get(cState) - vAnterior.get(cState);
+				diference += v.get(cState) - vAnterior.get(cState);
 			}
-		} while (diferencia > 0.00000001);
+		} while (diference > 0.00000001);
 
 	}
 

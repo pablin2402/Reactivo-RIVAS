@@ -32,6 +32,12 @@ Devuelve un double y ve la probabilidad que hay de una ciudad a otra, aparte de 
 El método sigue la siguiente estructura:
 ![Image of Example](https://github.com/pablin2402/Reactivo-RIVAS/blob/master/images/template.png)
 
+Basicamente es una iteración de las listas de todos los posibles estados y acciones.
+Para obtener Q(S,A) es necesario conocer la recompensa lo cual se hace con el método **calculateCost** y para la transición T(S,A, S') se uso el método **transition** que ve las probabilidades desde la ciudad actual a la ciudad destino. Este último método que devulve un valor double se multiplicará por el valor de descuento y por v.get(currentState) que muestra el máximo Q que tiene el estado.
+Después se buscará el máximo q y la mejor acción para cada estado y se insertará en estrategia el estado y la mejor acción.
+Finalmente se hará una iteración de todos los estados calculando la diferencia entre al valor obtenido por v y vanterior.
+Todo esto se hara hasta que la diferencia sea mayor a _0.00001_.
+
 #### Action act(Vehicle vehicle, Task availableTask)
 
 El código Action que implemente es el siguiente:
@@ -63,6 +69,8 @@ Lo que hace es bastante simple, ve si la tarea disponible es falsa y si es asi s
 Los resultados son los siguientes:
 
 ![Image of Example 2](https://github.com/pablin2402/Reactivo-RIVAS/blob/master/images/graph_095.png)
+
+![Image of Example 3](https://github.com/pablin2402/Reactivo-RIVAS/blob/master/images/graph2.png)
 
 Para ejecutar este proyecto basta con ejecutar el siguiente comando:
 
